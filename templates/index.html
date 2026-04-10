@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Predictor Dashboard</title>
+
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        .card {
+            background: #1e1e1e;
+            margin: 15px auto;
+            padding: 15px;
+            border-radius: 10px;
+            width: 350px;
+        }
+
+        .big { color: #00ff88; }
+        .small { color: #ff4d4d; }
+
+        .win { color: #00ff88; }
+        .loss { color: #ff4d4d; }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 AI Predictor Dashboard</h1>
+
+<div class="card">
+    <div id="period"></div>
+    <div id="next"></div>
+
+    <h2 id="final"></h2>
+    <div id="confidence"></div>
+</div>
+
+<div class="card">
+    <h3>🤖 AI Bots</h3>
+    <div id="bots"></div>
+</div>
+
+<!-- ✅ HISTORY SECTION -->
+<div class="card">
+    <h3>📜 History</h3>
+    <div id="history">Loading...</div>
+</div>
+
+<script>
+
+async function loadData(){
+    let res = await fetch("/data");
+    let data = await res.json();
+
+    if(!data.period) return;
+
+    document.getElementById("period").innerText = data.period;
+    document.getElementById("next").innerText = "Next: " + data.next;
+
+    document.getElementById("final").innerHTML =
+        `<span class="${data.final.toLowerCase()}">${data.final}</span>`;
+
+    document.getElementById("confidence").innerText =
+        "Confidence: " + data.confidence + "%";
+
+    let botsHTML = "";
+    for(let k in data.bots){
+        botsHTML += `<p>${k.toUpperCase()} → ${data.bots[k]}</p>`;
+    }
+    document.getElementById("bots").innerHTML = botsHTML;
+
+    // ✅ HISTORY RENDER
+    let historyHTML = "";
+
+    if(data.history && data.history.length > 0){
+        data.history.forEach(h => {
+            let cls = h.result === "WIN" ? "win" : "loss";
+
+            historyHTML += `
+                <p>
+                    ${h.period} → 
+                    Pred: ${h.prediction} | 
+                    Actual: ${h.actual} → 
+                    <span class="${cls}">${h.result}</span>
+                </p>
+            `;
+        });
+    } else {
+        historyHTML = "<p>No history yet...</p>";
+    }
+
+    document.getElementById("history").innerHTML = historyHTML;
+}
+
+setInterval(loadData, 3000);
+loadData();
+
+</script>
+
+</body>
+</html>
